@@ -1,21 +1,22 @@
 import PropTypes from 'prop-types';
 
 
-function Square({ peice, isItBlack}) {
+function Square({ isItBlack, onSquareClick, children}) {
+    //children aka piece 
     return (
-        // <div>Square</div>
-        <div className={`square + ${isItBlack && 'blackSquare'}`}>
-            {peice}
-        </div>
+        <button onClick={onSquareClick} className={`square + ${isItBlack && 'blackSquare'}`}>
+            {children}
+        </button>
     )
 }
 
 Square.propTypes = {
-    peice: PropTypes.oneOfType([
+    children: PropTypes.oneOfType([
         PropTypes.element,
         PropTypes.oneOf([null]),
     ]),
     isItBlack: PropTypes.bool.isRequired,
+    onSquareClick: PropTypes.func,
 };
 
 export default Square

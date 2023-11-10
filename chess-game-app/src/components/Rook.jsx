@@ -11,6 +11,6 @@ function Rook({ color }) {
 
 Rook.propTypes = {
     color: PropTypes.oneOf(['black', 'white']).isRequired,
-  };
+};
 
 export default Rook
