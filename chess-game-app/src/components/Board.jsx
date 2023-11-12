@@ -47,6 +47,14 @@ function Board() {
 
     const [board, setBoard] = useState(initialBoradState)
 
+    function updateBoardState(row, col) {
+        let newBoardState = deepCopy2DArray(board)
+        newBoardState[row][col] = touchedPiece.piece
+        newBoardState[touchedPiece.row][touchedPiece.col] = null
+        setTouchedPiece({ ...touchedPiece, piece: null })
+        setBoard(newBoardState)
+    }
+
     // handle the Game
     const handleClick = (row, col) => { // chosing the piece to play with 
         if (!touchedPiece.piece) {
@@ -66,11 +74,7 @@ function Board() {
                 switch (touchedPiece.piece.type.name) {
                     case 'Pawn': {
                         if (handlePawnMovement(board, touchedPiece.row, touchedPiece.col, touchedPiece.piece.props.color, row, col)) {
-                            let newBoardState = deepCopy2DArray(board)
-                            newBoardState[row][col] = touchedPiece.piece
-                            newBoardState[touchedPiece.row][touchedPiece.col] = null
-                            setTouchedPiece({ ...touchedPiece, piece: null })
-                            setBoard(newBoardState)
+                            updateBoardState(row, col)
                         } else {
                             console.log("INCORRECT")
                             setTouchedPiece({ ...touchedPiece, piece: null })
@@ -82,7 +86,15 @@ function Board() {
                         //   handleRookMove(x, y);
                         break;
                     case 'Knight':
-                        //   handleKnightMove(x, y);
+                        if (handleKnightMovement(board, touchedPiece.row, touchedPiece.col, touchedPiece.piece.props.color, row, col)) {
+                            updateBoardState(row, col)
+                        } else {
+                            console.log("INCORRECT")
+                            setTouchedPiece({ ...touchedPiece, piece: null })
+                            turn === 'white' ? setTurn('black') : setTurn('white') // to choose another piece to play with
+                        }
+                        break;
+
                         break;
                     case 'Bishop':
                         //   handleBishopMove(x, y);
@@ -142,21 +154,20 @@ function Board() {
             {boardRows}
         </>
     )
+
 }
 
 export default Board
+
 
 function deepCopy2DArray(array) {
     return array.map((row) => [...row]);
 }
 
-
 function handlePawnMovement(board, currentRow, currentCol, color, nextRow, nextCol) {
     let possibleMovement = []
 
     if (color === "white") {
-
-
         if (currentRow > 0 && !board[currentRow - 1][currentCol]) // move with one square
             possibleMovement.push({ row: currentRow - 1, col: currentCol })
 
@@ -202,6 +213,29 @@ function handlePawnMovement(board, currentRow, currentCol, color, nextRow, nextC
     return false;
 }
 
+function handleKnightMovement(board, currentRow, currentCol, color, nextRow, nextCol) {
+    let possibleMovement = [
+        { row: currentRow - 1, col: currentCol - 2 },
+        { row: currentRow - 1, col: currentCol + 2 },
+        { row: currentRow + 1, col: currentCol - 2 },
+        { row: currentRow + 1, col: currentCol + 2 },
+        { row: currentRow - 2, col: currentCol - 1 },
+        { row: currentRow - 2, col: currentCol + 1 },
+        { row: currentRow + 2, col: currentCol + 1 },
+        { row: currentRow + 2, col: currentCol - 1 }
+    ]
+
+    console.log(possibleMovement)
+    for (let i = 0; i < possibleMovement.length; i++) {
+        let { row, col } = possibleMovement[i];
+        if (row === nextRow && col === nextCol)
+            return true;
+    }
+
+    return false;
+}
+
+
 /*
 function handlePawnTranformation() {
 }
@@ -219,9 +253,6 @@ function handleQueenMovement(currentRow, currenetCol, nextRow, nextCol) {
     return true;
 }
 function handleSquareMovement(currentRow, currenetCol, nextRow, nextCol) {
-    return true;
-}
-function handleKnightMovement(currentRow, currenetCol, nextRow, nextCol) {
     return true;
 }
 */
