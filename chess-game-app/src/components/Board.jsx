@@ -4,14 +4,19 @@ import Bishop from './Bishop'
 import King from './King'
 import Knight from './Knight'
 import Pawn from './Pawn'
-import Queen from './Queen's
+import Queen from './Queen'
 import Rook from './Rook'
 import Square from './Square'
 // import { GameContext } from './GameContext'
 
+
+
 function Board() {
-    const [touchedPiece, setTouchedPiece] = useState(1)
-    // const [isBlackTurn, setIsBlackTurn] = useState(false);
+
+    const [touchedPiece, setTouchedPiece] = useState({
+        row: 99, col: 99, piece: null
+    })
+    const [turn, setTurn] = useState('white');
     // const [isCheck, setIsCheck] = useState(false);
     // const [isCheckmate, setIsCheckmate] = useState(false);
 
@@ -42,19 +47,66 @@ function Board() {
 
     const [board, setBoard] = useState(initialBoradState)
 
-    console.log(board)
-
-    const handleClick = (row, col) => {
-        if (touchedPiece === 1) {
-            setTouchedPiece(board[row][col])
-            console.log(board[row][col])
+    // handle the Game
+    const handleClick = (row, col) => { // chosing the piece to play with 
+        if (!touchedPiece.piece) {
+            if (board[row][col] !== null && board[row][col].props.color === turn) {
+                const touched = {
+                    piece: board[row][col],
+                    row: row,
+                    col: col
+                }
+                console.log(touched)
+                setTouchedPiece(touched)
+                board[row][col].props.color === 'white' ? setTurn('black') : setTurn('white') // see if we have to change it
+            }
         }
-        else {
-            let newArr = deepCopy2DArray(board)
-            newArr[row][col] = touchedPiece
-            touchedPiece.func()
-            setTouchedPiece(1)
-            setBoard(newArr)
+        else {  // playing & validating
+            if (board[row][col] === null || board[row][col].props.color !== touchedPiece.piece.props.color) {
+                switch (touchedPiece.piece.type.name) {
+                    case 'Pawn': {
+                        if (handlePawnMovement(board, touchedPiece.row, touchedPiece.col, touchedPiece.piece.props.color, row, col)) {
+                            let newBoardState = deepCopy2DArray(board)
+                            newBoardState[row][col] = touchedPiece.piece
+                            newBoardState[touchedPiece.row][touchedPiece.col] = null
+                            setTouchedPiece({ ...touchedPiece, piece: null })
+                            setBoard(newBoardState)
+                        } else {
+                            console.log("INCORRECT")
+                            setTouchedPiece({ ...touchedPiece, piece: null })
+                            turn === 'white' ? setTurn('black') : setTurn('white') // to choose another piece to play with
+                        }
+                        break;
+                    }
+                    case 'Rook':
+                        //   handleRookMove(x, y);
+                        break;
+                    case 'Knight':
+                        //   handleKnightMove(x, y);
+                        break;
+                    case 'Bishop':
+                        //   handleBishopMove(x, y);
+                        break;
+                    case 'Queen':
+                        //   handleQueenMove(x, y);
+                        break;
+                    case 'King':
+                        //   handleKingMove(x, y);
+                        break;
+                    default: {
+                        break;
+                    }
+                }
+
+                // let newBoardState = deepCopy2DArray(board)
+                // newBoardState[row][col] = touchedPiece.piece
+                // newBoardState[touchedPiece.row][touchedPiece.col] = null
+                // setTouchedPiece({ ...touchedPiece, piece: null })
+                // setBoard(newBoardState)
+
+
+
+            }
         }
     }
 
@@ -68,10 +120,6 @@ function Board() {
             </Square>
             // </ GameContext.Provider>
         );
-        // return (
-        //     <Square key={key} peice={i} isItBlack={black} onSquareClick={() => {
-        //         handleClick(row, col)
-        //     }} />);
     }
 
     let b = false;  // b <==> isblackSquare 
@@ -89,15 +137,8 @@ function Board() {
         boardRows.push(<div key={row} className="board-row">{squaresInRow}</div>);
     }
 
-
-    // let newArr = deepCopy2DArray(board)
-
-    // newArr[5][5] = <Bishop color='black' />
-
-
     return (
         <>
-            {/* <button onClick={() => setBoard(newArr)}>update</button> */}
             {boardRows}
         </>
     )
@@ -108,3 +149,79 @@ export default Board
 function deepCopy2DArray(array) {
     return array.map((row) => [...row]);
 }
+
+
+function handlePawnMovement(board, currentRow, currentCol, color, nextRow, nextCol) {
+    let possibleMovement = []
+
+    if (color === "white") {
+
+
+        if (currentRow > 0 && !board[currentRow - 1][currentCol]) // move with one square
+            possibleMovement.push({ row: currentRow - 1, col: currentCol })
+
+        if (currentRow === 6) { // first move with two squares 
+            if (!board[currentRow - 2][currentCol])
+                possibleMovement.push({ row: currentRow - 2, col: currentCol })
+        }
+
+        // eating to right
+        if (currentCol !== 7 && board[currentRow - 1][currentCol + 1])
+            possibleMovement.push({ row: currentRow - 1, col: currentCol + 1 })
+        // eating to left 
+        if (currentCol !== 0 && board[currentRow - 1][currentCol - 1])
+            possibleMovement.push({ row: currentRow - 1, col: currentCol - 1 })
+
+    } else {/**************** color === "black" ***************/
+
+        if (currentRow < 7 && !board[currentRow + 1][currentCol]) //move with one square
+            possibleMovement.push({ row: currentRow + 1, col: currentCol })
+
+        if (currentRow === 1) { // first move with two squares 
+            if (!board[currentRow + 1][currentCol])
+                possibleMovement.push({ row: currentRow + 2, col: currentCol })
+        }
+        // eating to right
+        if (currentCol !== 7 && board[currentRow + 1][currentCol + 1])
+            possibleMovement.push({ row: currentRow + 1, col: currentCol + 1 })
+        // eating to left 
+        if (currentCol !== 0 && board[currentRow + 1][currentCol - 1])
+            possibleMovement.push({ row: currentRow + 1, col: currentCol - 1 })
+
+    }
+
+    console.log("current %d %d", currentRow, currentCol)
+    console.log(possibleMovement)
+    console.log(nextRow, nextCol)
+
+    for (let i = 0; i < possibleMovement.length; i++) {
+        let { row, col } = possibleMovement[i]
+        if (row === nextRow && col === nextCol)
+            return true;
+    }
+    return false;
+}
+
+/*
+function handlePawnTranformation() {
+}
+
+function handleRookMovement(currentRow, currenetCol, nextRow, nextCol) {
+    return true;
+}
+function handleBishopMovement(currentRow, currenetCol, nextRow, nextCol) {
+    return true;
+}
+function handleKingMovement(currentRow, currenetCol, nextRow, nextCol) {
+    return true;
+}
+function handleQueenMovement(currentRow, currenetCol, nextRow, nextCol) {
+    return true;
+}
+function handleSquareMovement(currentRow, currenetCol, nextRow, nextCol) {
+    return true;
+}
+function handleKnightMovement(currentRow, currenetCol, nextRow, nextCol) {
+    return true;
+}
+*/
