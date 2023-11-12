@@ -94,8 +94,6 @@ function Board() {
                             turn === 'white' ? setTurn('black') : setTurn('white') // to choose another piece to play with
                         }
                         break;
-
-                        break;
                     case 'Bishop':
                         //   handleBishopMove(x, y);
                         break;
@@ -164,10 +162,13 @@ function deepCopy2DArray(array) {
     return array.map((row) => [...row]);
 }
 
+
 function handlePawnMovement(board, currentRow, currentCol, color, nextRow, nextCol) {
     let possibleMovement = []
 
     if (color === "white") {
+
+
         if (currentRow > 0 && !board[currentRow - 1][currentCol]) // move with one square
             possibleMovement.push({ row: currentRow - 1, col: currentCol })
 
