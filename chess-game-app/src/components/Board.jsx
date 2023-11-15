@@ -46,6 +46,7 @@ function Board() {
     }
 
     const [board, setBoard] = useState(initialBoradState)
+    // console.log(board)
 
     function updateBoardState(row, col) {
         let newBoardState = deepCopy2DArray(board)
@@ -70,11 +71,20 @@ function Board() {
             }
         }
         else {  // playing & validating
+
             if (board[row][col] === null || board[row][col].props.color !== touchedPiece.piece.props.color) {
                 switch (touchedPiece.piece.type.name) {
                     case 'Pawn': {
                         if (handlePawnMovement(board, touchedPiece.row, touchedPiece.col, touchedPiece.piece.props.color, row, col)) {
-                            updateBoardState(row, col)
+                            if (handlePawnTranformation(row)) {
+                                let newBoardState = deepCopy2DArray(board)
+                                newBoardState[row][col] = <Queen color={touchedPiece.piece.props.color} />
+                                newBoardState[touchedPiece.row][touchedPiece.col] = null
+                                setTouchedPiece({ ...touchedPiece, piece: null })
+                                setBoard(newBoardState)
+                            }
+                            else
+                                updateBoardState(row, col)
                         } else {
                             console.log("INCORRECT")
                             setTouchedPiece({ ...touchedPiece, piece: null })
@@ -86,7 +96,7 @@ function Board() {
                         //   handleRookMove(x, y);
                         break;
                     case 'Knight':
-                        if (handleKnightMovement(board, touchedPiece.row, touchedPiece.col, touchedPiece.piece.props.color, row, col)) {
+                        if (handleKnightMovement(touchedPiece.row, touchedPiece.col, row, col)) {
                             updateBoardState(row, col)
                         } else {
                             console.log("INCORRECT")
@@ -94,8 +104,15 @@ function Board() {
                             turn === 'white' ? setTurn('black') : setTurn('white') // to choose another piece to play with
                         }
                         break;
-                    case 'Bishop':
-                        //   handleBishopMove(x, y);
+                    case 'Bishop': {
+                        if (handleBishopMovement(board, touchedPiece.row, touchedPiece.col, touchedPiece.piece.props.color, row, col)) {
+                            updateBoardState(row, col)
+                        } else {
+                            console.log("INCORRECT")
+                            setTouchedPiece({ ...touchedPiece, piece: null })
+                            turn === 'white' ? setTurn('black') : setTurn('white') // to choose another piece to play with
+                        }
+                    }
                         break;
                     case 'Queen':
                         //   handleQueenMove(x, y);
@@ -116,6 +133,10 @@ function Board() {
 
 
 
+            }else{
+                console.log("INCORRECT")
+                setTouchedPiece({ ...touchedPiece, piece: null })
+                turn === 'white' ? setTurn('black') : setTurn('white')
             }
         }
     }
@@ -126,6 +147,7 @@ function Board() {
             <Square key={key} isItBlack={black} onSquareClick={() => {
                 handleClick(row, col)
             }}>
+                {/* {`${row} ${col}`} */}
                 {piece}
             </Square>
             // </ GameContext.Provider>
@@ -214,7 +236,14 @@ function handlePawnMovement(board, currentRow, currentCol, color, nextRow, nextC
     return false;
 }
 
-function handleKnightMovement(board, currentRow, currentCol, color, nextRow, nextCol) {
+
+function handlePawnTranformation(nextRow) {
+    if (nextRow === 0 || nextRow === 7)
+        return true
+}
+
+
+function handleKnightMovement(currentRow, currentCol, nextRow, nextCol) {
     let possibleMovement = [
         { row: currentRow - 1, col: currentCol - 2 },
         { row: currentRow - 1, col: currentCol + 2 },
@@ -236,17 +265,75 @@ function handleKnightMovement(board, currentRow, currentCol, color, nextRow, nex
     return false;
 }
 
+function handleBishopMovement(board, currentRow, currentCol, color, nextRow, nextCol) {
+    let possibleMovement = [];
 
-/*
-function handlePawnTranformation() {
+    // for (let i = 0; i < 8; i++) {
+
+    //     let up = currentRow + i
+    //     let down = currentRow - i
+    //     let right = currentCol + i
+    //     let left = currentCol - i
+
+    //     if (up < 8 && up > 0) {
+    //         if (right < 8 && right > 0)
+    //             !board[up][right] && possibleMovement.push({ row: up, col: right })
+    //         if (left < 8 && left > 0)
+    //             !board[up][left] && possibleMovement.push({ row: up, col: left })
+    //     }
+
+    //     if (down < 8 && down > 0) {
+    //         if (right < 8 && right > 0)
+    //             !board[down][right] && possibleMovement.push({ row: down, col: right })
+    //         if (left < 8 && left > 0)
+    //             !board[down][left] && possibleMovement.push({ row: down, col: left })
+    //     }
+    // }
+    function testLine(color, vertical, horizantal) { // make it a function
+        
+        loop: for (let i = 1; i < 8; i++) {
+            let verticalMov = currentRow + (i * vertical)
+            let horizantalMov = currentCol + (i * horizantal)
+            
+            if (verticalMov < 8 && verticalMov >= 0) {
+                if (horizantalMov < 8 && horizantalMov >= 0)
+                    if (!board[verticalMov][horizantalMov]) {
+                        possibleMovement.push({ row: verticalMov, col: horizantalMov })
+                    } else if (board[verticalMov][horizantalMov].props.color !== color) {
+                        possibleMovement.push({ row: verticalMov, col: horizantalMov })
+                        break loop;    
+                    }
+                    else
+                        break loop;
+            }
+        }
+        console.log(possibleMovement)
+    }
+    testLine(color, -1, -1);
+    testLine(color, -1, 1);
+    testLine(color, 1, -1);
+    testLine(color, 1, 1);
+
+    console.log("current %d %d", currentRow, currentCol)
+    console.log(possibleMovement)
+    console.log(nextRow, nextCol)
+
+    for (let i = 0; i < possibleMovement.length; i++) {
+        let { row, col } = possibleMovement[i]
+        if (row === nextRow && col === nextCol)
+            return true;
+    }
+
+    return false;
 }
 
+
+
+/*
 function handleRookMovement(currentRow, currenetCol, nextRow, nextCol) {
     return true;
 }
-function handleBishopMovement(currentRow, currenetCol, nextRow, nextCol) {
-    return true;
-}
+
 function handleKingMovement(currentRow, currenetCol, nextRow, nextCol) {
     return true;
 }
