@@ -94,6 +94,13 @@ function Board() {
                     }
                     case 'Rook':
                         //   handleRookMove(x, y);
+                        if (handleBishopMovement(board, touchedPiece.row, touchedPiece.col, touchedPiece.piece.props.color, row, col)) {
+                            updateBoardState(row, col)
+                        } else {
+                            console.log("INCORRECT")
+                            setTouchedPiece({ ...touchedPiece, piece: null })
+                            turn === 'white' ? setTurn('black') : setTurn('white') // to choose another piece to play with
+                        }
                         break;
                     case 'Knight':
                         if (handleKnightMovement(touchedPiece.row, touchedPiece.col, row, col)) {
@@ -329,11 +336,42 @@ function handleBishopMovement(board, currentRow, currentCol, color, nextRow, nex
 
 
 
-/*
-function handleRookMovement(currentRow, currenetCol, nextRow, nextCol) {
-    return true;
+function handleRookMovement(board, currentRow, currentCol, color, nextRow, nextCol) {
+    let possibleMovement = [];
+    for(let i = 1 ; i<8 ; i++){
+        let verticalMov = currentRow + i ; 
+        
+        if (!board[verticalMov][currentCol]) {
+            possibleMovement.push({ row: verticalMov, col: currentCol })
+        } else if(board[verticalMov][currentCol].props.color !== color) {
+            possibleMovement.push({ row: verticalMov, col: currentCol })
+            break;    
+        }
+    }
+    
+    for(let i = 1 ; i<8 ; i++){
+        let horizantalMov = currentCol + i ;
+        
+        if (!board[currentRow][horizantalMov]) {
+            possibleMovement.push({ row: currentRow, col: horizantalMov })
+        } else if (board[currentRow][horizantalMov].props.color !== color) {
+            possibleMovement.push({ row: currentRow, col: horizantalMov })
+            break;    
+        }
+    }
+        
+        
+        
+    for (let i = 0; i < possibleMovement.length; i++) {
+        let { row, col } = possibleMovement[i]
+        if (row === nextRow && col === nextCol)
+            return true;
+    }
+
+    return false;
 }
 
+/*
 function handleKingMovement(currentRow, currenetCol, nextRow, nextCol) {
     return true;
 }
